@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ekspedisi Arsip Nusantara — Diagnostik Awal Kelas XI</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --void:#0b0e14;
+  --void-2:#12161f;
+  --paper:#ece2c8;
+  --paper-dim:#cfc4a3;
+  --brass:#c9a227;
+  --brass-dim:#8a7220;
+  --teal:#4fd1c5;
+  --red:#e2725b;
+  --ink:#1b1a15;
+  --line: rgba(201,162,39,0.25);
+  --font-display: 'Special Elite', 'Courier New', monospace;
+  --font-body: 'Inter', -apple-system, sans-serif;
+  --font-data: 'JetBrains Mono', 'Courier New', monospace;
+}
+@font-face{font-family:'Special Elite';src:local('Special Elite');}
+* { box-sizing:border-box; margin:0; padding:0; }
+html,body{ background:var(--void); color:var(--paper); font-family:var(--font-body); min-height:100vh; }
+body{
+  background-image:
+    radial-gradient(ellipse at 20% -10%, rgba(201,162,39,0.08), transparent 50%),
+    radial-gradient(ellipse at 80% 110%, rgba(79,209,197,0.06), transparent 50%);
+  overflow-x:hidden;
+}
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+.screen{ min-height:100vh; width:100%; display:none; flex-direction:column; align-items:center; padding:32px 16px 60px; position:relative; }
+.screen.active{ display:flex; }
+
+/* ---------- shared dossier chrome ---------- */
+.folder-tab{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--font-data); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--brass); border:1px solid var(--line); padding:6px 14px; border-radius:2px;
+  background:rgba(201,162,39,0.06);
+}
+.stamp{
+  font-family:var(--font-display); color:var(--red); border:2px solid var(--red);
+  padding:3px 10px; border-radius:2px; transform:rotate(-4deg); font-size:12px; letter-spacing:.08em;
+  opacity:.85;
+}
+.hairline{ width:100%; max-width:760px; height:1px; background:var(--line); margin:20px 0; }
+
+/* ---------- intake screen ---------- */
+#screen-intro .wrap{ max-width:760px; width:100%; }
+.case-number{ font-family:var(--font-data); color:var(--paper-dim); font-size:13px; letter-spacing:.1em; margin-bottom:10px;}
+h1.title{
+  font-family:var(--font-display); font-size:clamp(28px,5vw,46px); color:var(--paper);
+  line-height:1.15; margin:6px 0 4px; text-transform:uppercase; letter-spacing:.01em;
+}
+.subtitle{ color:var(--teal); font-family:var(--font-data); font-size:14px; letter-spacing:.06em; margin-bottom:28px;}
+.brief-card{
+  border:1px solid var(--line); background:linear-gradient(180deg, rgba(236,226,200,0.04), rgba(236,226,200,0.01));
+  border-radius:4px; padding:24px 26px; margin-bottom:20px;
+}
+.brief-card p{ color:var(--paper-dim); font-size:15px; line-height:1.7; margin-bottom:12px; }
+.brief-card p:last-child{margin-bottom:0;}
+.brief-card strong{ color:var(--paper); }
+.dim-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:22px 0; }
+.dim-chip{
+  border:1px solid var(--line); border-radius:3px; padding:12px 14px; background:rgba(255,255,255,0.02);
+}
+.dim-chip .n{ font-family:var(--font-data); color:var(--brass); font-size:11px; }
+.dim-chip .l{ font-size:13px; color:var(--paper); margin-top:4px; font-weight:600;}
+.name-field{ width:100%; margin:22px 0; }
+.name-field label{ display:block; font-family:var(--font-data); font-size:12px; color:var(--paper-dim); margin-bottom:8px; letter-spacing:.06em;}
+.name-field input{
+  width:100%; background:var(--void-2); border:1px solid var(--line); color:var(--paper);
+  padding:12px 14px; font-size:15px; border-radius:3px; font-family:var(--font-body);
+}
+.name-field input:focus{ outline:none; border-color:var(--brass); }
+.btn{
+  font-family:var(--font-data); font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  font-size:13px; padding:14px 30px; border-radius:3px; border:1px solid var(--brass);
+  background:var(--brass); color:var(--ink); cursor:pointer; transition:transform .15s, background .15s;
+}
+.btn:hover{ background:#ddb643; transform:translateY(-1px); }
+.btn.ghost{ background:transparent; color:var(--brass); }
+.btn.ghost:hover{ background:rgba(201,162,39,0.08); }
+.btn:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+
+/* ---------- test screen ---------- */
+#screen-test .wrap{ max-width:760px; width:100%; }
+.progress-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.progress-track{ width:100%; height:5px; background:var(--void-2); border-radius:3px; overflow:hidden; margin-bottom:26px; border:1px solid var(--line);}
+.progress-fill{ height:100%; background:linear-gradient(90deg, var(--brass-dim), var(--brass)); width:0%; transition:width .4s ease; }
+.item-tag{ font-family:var(--font-data); font-size:11px; color:var(--teal); letter-spacing:.12em; text-transform:uppercase; }
+.stimulus{
+  border-left:3px solid var(--brass); background:rgba(255,255,255,0.03); padding:16px 18px;
+  margin:16px 0 22px; border-radius:0 4px 4px 0; font-size:14px; color:var(--paper-dim); line-height:1.75;
+}
+.stimulus .stim-label{ font-family:var(--font-data); font-size:10px; color:var(--brass); letter-spacing:.14em; text-transform:uppercase; margin-bottom:8px; display:block;}
+.stimulus table{ width:100%; border-collapse:collapse; margin-top:10px; font-family:var(--font-data); font-size:13px;}
+.stimulus th, .stimulus td{ border:1px solid var(--line); padding:7px 10px; text-align:right; color:var(--paper);}
+.stimulus th:first-child, .stimulus td:first-child{ text-align:left; }
+.stimulus th{ background:rgba(201,162,39,0.1); color:var(--brass); font-weight:600;}
+.q-prompt{ font-size:17px; color:var(--paper); line-height:1.55; margin-bottom:20px; font-weight:500;}
+.options{ display:flex; flex-direction:column; gap:10px; }
+.option{
+  border:1px solid var(--line); border-radius:4px; padding:14px 16px; cursor:pointer;
+  background:rgba(255,255,255,0.015); display:flex; gap:12px; align-items:flex-start; transition:.15s;
+  font-size:14.5px; color:var(--paper-dim); line-height:1.5;
+}
+.option:hover{ border-color:var(--brass-dim); background:rgba(201,162,39,0.05); }
+.option.selected{ border-color:var(--brass); background:rgba(201,162,39,0.1); color:var(--paper);}
+.option .bullet{
+  flex:0 0 auto; width:20px; height:20px; border-radius:50%; border:1px solid var(--paper-dim);
+  display:flex; align-items:center; justify-content:center; font-family:var(--font-data); font-size:10px; margin-top:1px;
+}
+.option.selected .bullet{ border-color:var(--brass); background:var(--brass); color:var(--ink); }
+.nav-row{ display:flex; justify-content:space-between; margin-top:28px; }
+
+/* ---------- results screen ---------- */
+#screen-result .wrap{ max-width:920px; width:100%; }
+.result-header{ text-align:center; margin-bottom:8px;}
+.result-header h1{ font-family:var(--font-display); font-size:clamp(24px,4vw,34px); color:var(--paper); text-transform:uppercase;}
+.result-sub{ font-family:var(--font-data); color:var(--teal); font-size:13px; margin-top:6px;}
+.result-grid{ display:grid; grid-template-columns:1.1fr 1fr; gap:26px; margin-top:30px; align-items:start;}
+@media (max-width:760px){ .result-grid{ grid-template-columns:1fr; } }
+.chart-card, .table-card{
+  border:1px solid var(--line); border-radius:6px; background:rgba(255,255,255,0.02); padding:20px;
+}
+.card-label{ font-family:var(--font-data); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--brass); margin-bottom:14px;}
+table.score-table{ width:100%; border-collapse:collapse; }
+table.score-table td{ padding:10px 4px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:middle;}
+table.score-table tr:last-child td{ border-bottom:none; }
+.dim-name{ color:var(--paper); font-weight:600; }
+.score-bar-track{ width:100%; height:7px; background:var(--void-2); border-radius:4px; overflow:hidden; margin-top:5px;}
+.score-bar-fill{ height:100%; border-radius:4px; }
+.score-pct{ font-family:var(--font-data); font-weight:700; font-size:15px; text-align:right; width:50px; }
+.score-tag{ font-family:var(--font-data); font-size:10px; letter-spacing:.06em; text-align:right; margin-top:2px; }
+.feedback-block{
+  margin-top:26px; border:1px solid var(--line); border-radius:6px; padding:22px 24px;
+  background:linear-gradient(180deg, rgba(79,209,197,0.05), rgba(255,255,255,0.01));
+}
+.feedback-block h3{ font-family:var(--font-data); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--teal); margin-bottom:12px;}
+.feedback-block p{ font-size:15px; color:var(--paper-dim); line-height:1.75; margin-bottom:10px;}
+.feedback-block p:last-child{ margin-bottom:0; }
+.feedback-block .hi{ color:var(--paper); font-weight:600;}
+.reco-block{ margin-top:20px; }
+.reco-heading{ font-family:var(--font-data); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--brass); margin-bottom:14px;}
+.reco-list{ display:flex; flex-direction:column; gap:14px; }
+.reco-card{
+  border:1px solid var(--line); border-left:3px solid var(--brass); border-radius:0 6px 6px 0;
+  background:rgba(255,255,255,0.02); padding:16px 20px;
+}
+.reco-card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:8px;}
+.reco-card-title{ font-family:var(--font-data); font-size:13px; letter-spacing:.04em; color:var(--paper); font-weight:700; text-transform:uppercase;}
+.reco-card-score{ font-family:var(--font-data); font-size:12px; font-weight:700; }
+.reco-card ul{ margin:0; padding-left:18px; }
+.reco-card li{ font-size:14px; color:var(--paper-dim); line-height:1.65; margin-bottom:5px; }
+.reco-card li:last-child{ margin-bottom:0; }
+.reco-empty{ font-size:14px; color:var(--paper-dim); line-height:1.7; border:1px solid var(--line); border-radius:6px; padding:16px 20px; background:rgba(79,209,197,0.05); }
+.actions{ display:flex; gap:12px; justify-content:center; margin-top:30px; flex-wrap:wrap;}
+.footer-note{ text-align:center; color:var(--paper-dim); font-size:11.5px; margin-top:34px; font-family:var(--font-data); opacity:.6;}
+
+/* ---------- splash screen ---------- */
+#screen-splash{ justify-content:center; align-items:center; text-align:center; min-height:100vh; }
+#screen-splash .wrap{ max-width:520px; width:100%; display:flex; flex-direction:column; align-items:center; }
+.splash-seal{
+  width:88px; height:88px; border:2px solid var(--brass); border-radius:50%;
+  display:flex; align-items:center; justify-content:center; margin-bottom:26px;
+  font-family:var(--font-display); font-size:28px; color:var(--brass);
+  animation: seal-pulse 2.6s ease-in-out infinite;
+}
+@keyframes seal-pulse{
+  0%,100%{ box-shadow:0 0 0 0 rgba(201,162,39,0.25); }
+  50%{ box-shadow:0 0 0 14px rgba(201,162,39,0); }
+}
+.splash-eyebrow{ font-family:var(--font-data); font-size:11px; letter-spacing:.2em; color:var(--paper-dim); text-transform:uppercase; margin-bottom:14px; }
+.splash-title{ font-family:var(--font-display); font-size:clamp(24px,5vw,38px); color:var(--paper); text-transform:uppercase; line-height:1.2; margin-bottom:10px; }
+.splash-sub{ color:var(--teal); font-family:var(--font-data); font-size:13px; letter-spacing:.05em; margin-bottom:34px; }
+.splash-loadbar{ width:220px; height:3px; background:var(--void-2); border-radius:2px; overflow:hidden; margin-bottom:30px; border:1px solid var(--line); }
+.splash-loadbar-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--brass-dim), var(--brass)); animation: splash-load 1.8s ease forwards; }
+@keyframes splash-load{ from{ width:0%; } to{ width:100%; } }
+.splash-hint{ font-family:var(--font-data); font-size:11px; color:var(--paper-dim); opacity:.7; letter-spacing:.06em; }
+
+/* ---------- anti-cheat lock overlay ---------- */
+#lockOverlay{
+  position:fixed; inset:0; z-index:999; display:none; align-items:center; justify-content:center;
+  background:rgba(6,7,10,0.92); backdrop-filter:blur(4px); padding:20px;
+}
+#lockOverlay.active{ display:flex; }
+.lock-card{
+  max-width:440px; width:100%; border:2px solid var(--red); border-radius:6px; background:var(--void-2);
+  padding:30px 28px; text-align:center; box-shadow:0 0 0 6px rgba(226,114,91,0.08);
+}
+.lock-stamp{
+  font-family:var(--font-display); color:var(--red); border:2px solid var(--red); display:inline-block;
+  padding:5px 16px; border-radius:2px; transform:rotate(-3deg); font-size:14px; letter-spacing:.1em;
+  text-transform:uppercase; margin-bottom:16px;
+}
+.lock-title{ font-family:var(--font-display); color:var(--paper); font-size:clamp(20px,4vw,26px); text-transform:uppercase; margin-bottom:10px; }
+.lock-reason{ font-family:var(--font-data); font-size:12px; color:var(--red); letter-spacing:.04em; margin-bottom:6px; }
+.lock-count{ font-family:var(--font-data); font-size:11px; color:var(--paper-dim); margin-bottom:20px; }
+.lock-desc{ font-size:14px; color:var(--paper-dim); line-height:1.6; margin-bottom:22px; }
+.lock-field{ margin-bottom:14px; text-align:left; }
+.lock-field label{ display:block; font-family:var(--font-data); font-size:11px; color:var(--paper-dim); margin-bottom:6px; letter-spacing:.06em;}
+.lock-field input{
+  width:100%; background:var(--void); border:1px solid var(--line); color:var(--paper);
+  padding:11px 13px; font-size:15px; border-radius:3px; font-family:var(--font-body); letter-spacing:.05em;
+}
+.lock-field input:focus{ outline:none; border-color:var(--red); }
+.lock-error{ font-family:var(--font-data); font-size:12px; color:var(--red); min-height:16px; margin-bottom:10px; }
+.lock-btn{
+  width:100%; font-family:var(--font-data); font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  font-size:13px; padding:13px; border-radius:3px; border:1px solid var(--red); background:var(--red);
+  color:var(--void); cursor:pointer;
+}
+.lock-btn:hover{ background:#eb8a75; }
+
+/* ---------- violation log (result screen) ---------- */
+.violation-block{ margin-top:20px; border:1px solid var(--red); border-radius:6px; padding:18px 22px; background:rgba(226,114,91,0.06); }
+.violation-block h3{ font-family:var(--font-data); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--red); margin-bottom:10px;}
+.violation-block.clean{ border-color:var(--line); background:rgba(79,209,197,0.05); }
+.violation-block.clean h3{ color:var(--teal); }
+.violation-list{ list-style:none; font-family:var(--font-data); font-size:12.5px; color:var(--paper-dim); }
+.violation-list li{ padding:6px 0; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; gap:10px; }
+.violation-list li:last-child{ border-bottom:none; }
+</style>
+</head>
+<body>
+
+<!-- ============ ANTI-CHEAT LOCK OVERLAY ============ -->
+<div id="lockOverlay">
+  <div class="lock-card">
+    <div class="lock-stamp">Berkas Dikunci</div>
+    <div class="lock-title">Investigasi Dihentikan</div>
+    <div class="lock-reason" id="lockReason">Terdeteksi keluar dari halaman ujian.</div>
+    <div class="lock-count" id="lockCount">Pelanggaran ke-1 tercatat dengan waktu.</div>
+    <p class="lock-desc">Setiap kali kamu berpindah tab, membuka aplikasi lain, atau keluar dari halaman ini, sistem akan mengunci layar dan mencatatnya. Minta gurumu memasukkan kata sandi untuk membuka kembali berkas ini.</p>
+    <div class="lock-field">
+      <label>KATA SANDI GURU</label>
+      <input type="password" id="lockPassword" placeholder="Masukkan kata sandi...">
+    </div>
+    <div class="lock-error" id="lockError"></div>
+    <button class="lock-btn" id="btnUnlock">Buka Kunci &amp; Lanjutkan</button>
+  </div>
+</div>
+
+<!-- ============ SCREEN 0: SPLASH ============ -->
+<div class="screen active" id="screen-splash">
+  <div class="wrap">
+    <div class="splash-seal">XI</div>
+    <div class="splash-eyebrow">Berkas No. XI-HBI-000</div>
+    <h1 class="splash-title">Ekspedisi Arsip<br>Nusantara</h1>
+    <div class="splash-sub">Diagnostik Awal Kelas XI · Jejak Kerajaan Hindu-Buddha &amp; Islam</div>
+    <div class="splash-loadbar"><div class="splash-loadbar-fill"></div></div>
+    <button class="btn" id="btnOpenCase">Buka Berkas →</button>
+    <div class="splash-hint" style="margin-top:16px;">5 dimensi kognitif · 30 berkas investigasi</div>
+  </div>
+</div>
+
+<!-- ============ SCREEN 1: INTRO / INTAKE ============ -->
+<div class="screen" id="screen-intro">
+  <div class="wrap">
+    <div class="case-number">BERKAS NO. XI-HBI-000 &nbsp;/&nbsp; STATUS: <span style="color:var(--red)">BELUM DIBUKA</span></div>
+    <h1 class="title">Ekspedisi Arsip<br>Kerajaan Nusantara</h1>
+    <div class="subtitle">Diagnostik Kompetensi Awal — Materi Kerajaan Hindu-Buddha &amp; Islam, Kelas XI</div>
+
+    <div class="brief-card">
+      <p><strong>Pengantar Kasus.</strong> Sebelum memulai materi sejarah kelas XI, kamu ditugaskan sebagai peneliti muda untuk membuka kembali arsip tentang kerajaan-kerajaan Hindu-Buddha dan Islam di Nusantara — mulai dari prasasti, kitab kuno, catatan musafir asing, hingga jalur pelayaran dan perdagangan rempah.</p>
+      <p>Ini bukan tes hafalan nama raja dan tahun. Setiap berkas menuntutmu <strong>membaca sumber secara kritis, menalar sebab-akibat, berhitung dengan data sejarah, dan mengambil keputusan</strong> — persis seperti kompetensi yang akan terus kamu asah sepanjang kelas XI.</p>
+      <p style="color:var(--red);"><strong>Peringatan.</strong> Selama investigasi berlangsung, jangan berpindah tab atau membuka aplikasi lain. Sistem akan mengunci layar dan mencatat setiap pelanggaran; hanya guru yang memegang kata sandi untuk membuka kunci kembali.</p>
+    </div>
+
+    <div class="dim-grid" id="dim-grid"></div>
+
+    <div class="hairline"></div>
+
+    <div class="name-field">
+      <label>NAMA PENELITI (SISWA)</label>
+      <input type="text" id="studentName" placeholder="Tulis namamu di sini...">
+    </div>
+
+    <div class="name-field">
+      <label>KELAS</label>
+      <input type="text" id="studentClass" placeholder="Contoh: XI-4">
+    </div>
+
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px;">
+      <div class="folder-tab">30 berkas · ±35 menit</div>
+      <button class="btn" id="btnStart">Buka Berkas &amp; Mulai →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCREEN 2: TEST ============ -->
+<div class="screen" id="screen-test">
+  <div class="wrap">
+    <div class="progress-row">
+      <span class="item-tag" id="itemTag">BERKAS 01 / 30</span>
+      <span class="stamp" id="dimStamp">INTERPRETASI</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div id="stimulusHolder"></div>
+
+    <div class="q-prompt" id="qPrompt"></div>
+    <div class="options" id="qOptions"></div>
+
+    <div class="nav-row">
+      <button class="btn ghost" id="btnPrev">← Kembali</button>
+      <button class="btn" id="btnNext" disabled>Lanjut →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCREEN 3: RESULT ============ -->
+<div class="screen" id="screen-result">
+  <div class="wrap">
+    <div class="result-header">
+      <div class="folder-tab" style="margin-bottom:10px;">BERKAS DITUTUP</div>
+      <h1 id="resultName">Laporan Hasil Investigasi</h1>
+      <div class="result-sub" id="resultDate"></div>
+    </div>
+
+    <div class="result-grid">
+      <div class="chart-card">
+        <div class="card-label">Peta Kemampuan (Radar)</div>
+        <canvas id="radarChart" height="300"></canvas>
+      </div>
+      <div class="table-card">
+        <div class="card-label">Rincian Skor per Kompetensi</div>
+        <table class="score-table" id="scoreTable"></table>
+      </div>
+    </div>
+
+    <div class="feedback-block">
+      <h3>Catatan Peneliti Senior</h3>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="reco-block" id="recoBlock">
+      <h3 class="reco-heading">Rencana Latihan Lanjutan</h3>
+      <div id="recoList" class="reco-list"></div>
+    </div>
+
+    <div class="violation-block" id="violationBlock">
+      <h3 id="violationHeading">Rekam Integritas Pengerjaan</h3>
+      <div id="violationContent"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn ghost" id="btnRetry">Ulangi Investigasi</button>
+      <button class="btn" id="btnPrint">Cetak / Simpan Laporan</button>
+    </div>
+
+    <div class="footer-note">Diagnostik Awal Kelas XI — Ekspedisi Arsip Kerajaan Nusantara · Ahmad Ali Murtadho, S.Pd.</div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   DATA: DIMENSI KOMPETENSI
+========================================================= */
+const DIMENSIONS = [
+  { id:'interpretasi', label:'Interpretasi Sumber & Bias',       short:'Interpretasi', color:'#c9a227' },
+  { id:'kausalitas',   label:'Penalaran Kausalitas',             short:'Kausalitas',   color:'#e2725b' },
+  { id:'numerasi',     label:'Numerasi & Kronologi',             short:'Numerasi',     color:'#4fd1c5' },
+  { id:'spasial',      label:'Analisis Keruangan & Distribusi',  short:'Spasial',      color:'#8ab6e8' },
+  { id:'regulasi',     label:'Regulasi Diri',                    short:'Regulasi',     color:'#c58ae8' },
+];
+
+/* =========================================================
+   DATA: BANK SOAL (15 berkas, 3 per dimensi)
+   type 'mc'  -> option.correct (boolean), skor 100/0
+   type 'sjt' -> option.value (0-100), skor bertingkat
+========================================================= */
+const QUESTIONS = [
+{
+  dim:'interpretasi',
+  stimulus:{
+    label:"Prasasti Ciaruteun, Kerajaan Tarumanegara (abad ke-5 M)",
+    html:`Prasasti ini memuat pahatan sepasang telapak kaki yang disejajarkan dengan telapak kaki Dewa Wisnu, disertai pujian bahwa pemiliknya adalah raja yang gagah berani dan penguasa dunia.`
+  },
+  prompt:"Penyejajaran telapak kaki raja dengan telapak kaki Dewa Wisnu dalam prasasti ini paling tepat dibaca sebagai...",
+  options:[
+    {text:"Catatan geografis biasa tentang lokasi kaki raja pernah berpijak.", correct:false},
+    {text:"Upaya melegitimasi kekuasaan raja dengan mengaitkannya pada unsur ilahi.", correct:true},
+    {text:"Laporan resmi tentang hasil sensus penduduk Kerajaan Tarumanegara.", correct:false},
+    {text:"Bukti bahwa Wisnu pernah datang langsung mengunjungi wilayah tersebut secara nyata.", correct:false},
+  ]
+},
+{
+  dim:'interpretasi',
+  stimulus:{
+    label:"Catatan Pendeta I-Tsing (Tiongkok, akhir abad ke-7 M)",
+    html:`I-Tsing menulis bahwa Sriwijaya dipenuhi biksu yang tekun mempelajari bahasa Sanskerta, dan ia menyarankan biksu Tiongkok singgah di sana dahulu sebelum melanjutkan perjalanan ke India.`
+  },
+  prompt:"Karena I-Tsing sendiri adalah seorang biksu Buddha, catatannya tentang Sriwijaya paling tepat dibaca dengan mempertimbangkan bahwa...",
+  options:[
+    {text:"Catatannya pasti sepenuhnya keliru sebab ditulis oleh orang asing yang baru singgah.", correct:false},
+    {text:"Ia mungkin menonjolkan sisi keagamaan Sriwijaya karena itulah yang paling relevan dengan minat dan tujuan perjalanannya sendiri.", correct:true},
+    {text:"Catatan itu tidak ada gunanya sama sekali bagi peneliti sejarah Sriwijaya masa kini.", correct:false},
+    {text:"Ia menulis catatan tersebut atas perintah langsung raja Sriwijaya untuk kepentingan promosi kerajaan.", correct:false},
+  ]
+},
+{
+  dim:'interpretasi',
+  stimulus:{
+    label:"Kitab Negarakertagama, karya Mpu Prapanca (1365 M)",
+    html:`Kitab ini memuji Raja Hayam Wuruk sebagai penguasa bijaksana yang wilayahnya membentang luas, serta menggambarkan pemerintahannya penuh kemakmuran dan ketertiban.`
+  },
+  prompt:"Karena Mpu Prapanca menulis kitab ini sebagai pujangga istana Majapahit, sikap kritis yang paling tepat diambil peneliti sejarah adalah...",
+  options:[
+    {text:"Menerima seluruh isinya apa adanya karena ditulis pada masa kejadian berlangsung.", correct:false},
+    {text:"Menolak seluruh isinya karena dianggap pasti hanya berisi kebohongan istana semata.", correct:false},
+    {text:"Membandingkannya dengan prasasti dan sumber lain untuk menilai bagian mana yang bersifat pujian dan mana yang didukung bukti.", correct:true},
+    {text:"Mengabaikan kitab ini sepenuhnya karena ditulis dalam bentuk syair, bukan laporan resmi.", correct:false},
+  ]
+},
+{
+  dim:'interpretasi',
+  stimulus:{
+    label:"Catatan Tome Pires, pedagang Portugis (Suma Oriental, awal abad ke-16)",
+    html:`Tome Pires menggambarkan Malaka sebagai bandar yang sangat ramai, disinggahi pedagang dari berbagai bangsa, dan menyebutnya sebagai kota yang "diciptakan untuk berdagang".`
+  },
+  prompt:"Sebagai seorang pedagang Portugis yang datang menjelang penaklukan Malaka, catatan Tome Pires ini paling tepat dinilai dengan mempertimbangkan bahwa...",
+  options:[
+    {text:"Ia mungkin menilai Malaka terutama dari sudut pandang kepentingan dagang dan strategi bangsanya sendiri.", correct:true},
+    {text:"Catatannya pasti seluruhnya netral karena ia hanya seorang pedagang biasa, bukan pejabat kerajaan.", correct:false},
+    {text:"Catatan ini tidak dapat dipakai sama sekali karena ditulis oleh orang asing dari luar Nusantara.", correct:false},
+    {text:"Catatannya membuktikan bahwa Malaka sebenarnya bukan bandar dagang yang penting pada masa itu.", correct:false},
+  ]
+},
+{
+  dim:'interpretasi',
+  stimulus:{
+    label:"Babad Tanah Jawi tentang berdirinya Kesultanan Demak",
+    html:`Babad ini menuturkan berdirinya Demak bercampur dengan kisah-kisah karomah para wali serta unsur mitos, di samping catatan silsilah dan peristiwa politik.`
+  },
+  prompt:"Karena babad bercampur antara unsur sejarah dan mitos, langkah paling tepat bagi peneliti yang ingin memakainya sebagai sumber adalah...",
+  options:[
+    {text:"Memakai seluruh isi babad apa adanya sebab dianggap warisan budaya yang harus dihormati.", correct:false},
+    {text:"Membuang seluruh babad karena mengandung unsur mitos dan dianggap tidak berguna sama sekali.", correct:false},
+    {text:"Memilah bagian yang bisa diverifikasi dengan prasasti atau catatan lain dari bagian yang bersifat legenda.", correct:true},
+    {text:"Mempercayai unsur mitosnya saja sebab dianggap lebih menarik untuk diceritakan kembali.", correct:false},
+  ]
+},
+{
+  dim:'interpretasi',
+  stimulus:{
+    label:"Dua Sumber tentang Keruntuhan Majapahit",
+    html:`Sumber A (candrasengkala/kronogram tradisional): keruntuhan ditandai tahun "sirna ilang kertaning bumi" (1400 Saka). Sumber B (catatan asing sezaman): menyebut kemunduran Majapahit terjadi bertahap akibat perebutan takhta berkepanjangan.`
+  },
+  prompt:"Ketika dua sumber tentang peristiwa yang sama tidak sepenuhnya sejalan seperti ini, sikap paling tepat bagi peneliti adalah...",
+  options:[
+    {text:"Memilih salah satu sumber secara acak, sebab keduanya dianggap sama-sama tidak dapat dipercaya.", correct:false},
+    {text:"Mengabaikan kedua sumber dan menganggap keruntuhan Majapahit tidak pernah benar-benar terjadi.", correct:false},
+    {text:"Menerima Sumber A saja sebab berbentuk kronogram tradisional yang dianggap lebih sakral dan pasti benar.", correct:false},
+    {text:"Menelusuri kemungkinan bahwa keduanya saling melengkapi, lalu mencari bukti pendukung tambahan.", correct:true},
+  ]
+},
+{
+  dim:'kausalitas',
+  stimulus:{
+    label:"Ringkasan Latar",
+    html:`Sriwijaya berdiri di tepi Selat Malaka, jalur pelayaran yang menghubungkan India dan Tiongkok. Tidak lama setelah menguasai jalur ini, Sriwijaya berkembang pesat menjadi kerajaan maritim yang disegani.`
+  },
+  prompt:"Hubungan kausal yang paling masuk akal antara letak Sriwijaya dan kejayaannya sebagai kerajaan maritim adalah...",
+  options:[
+    {text:"Letak strategis di jalur pelayaran internasional memungkinkan Sriwijaya mengendalikan dan memungut cukai dari lalu lintas dagang.", correct:true},
+    {text:"Selat Malaka dibangun oleh Sriwijaya sendiri untuk menciptakan jalur pelayaran baru.", correct:false},
+    {text:"Letak dan kejayaan Sriwijaya adalah dua hal yang kebetulan terjadi bersamaan tanpa keterkaitan.", correct:false},
+    {text:"Kejayaan Sriwijaya justru terjadi lebih dulu, baru kemudian menyebabkan munculnya Selat Malaka sebagai jalur ramai.", correct:false},
+  ]
+},
+{
+  dim:'kausalitas',
+  stimulus:{
+    label:"Ringkasan Latar",
+    html:`Perang Bubat (1357 M) meletus setelah rombongan pinangan putri Sunda untuk Hayam Wuruk berujung bentrok di Majapahit. Setelah peristiwa ini, hubungan Kerajaan Sunda dan Majapahit tercatat memburuk untuk waktu yang lama.`
+  },
+  prompt:"Jika seorang siswa menyimpulkan \"hubungan Sunda-Majapahit memburuk semata karena kedua kerajaan sudah bermusuhan sejak awal\", kesimpulan itu...",
+  options:[
+    {text:"Tepat, sebab seluruh catatan sejarah menyebut permusuhan itu sudah ada sejak kerajaan berdiri.", correct:false},
+    {text:"Tidak tepat, sebab bukti yang ada menunjukkan pemburukan hubungan justru dipicu oleh peristiwa Perang Bubat itu sendiri.", correct:true},
+    {text:"Tidak dapat dinilai, sebab pernikahan politik dan hubungan antarkerajaan dianggap tak pernah saling berkaitan.", correct:false},
+    {text:"Tepat, sebab pinangan pernikahan politik sama sekali tidak relevan dengan hubungan dua kerajaan.", correct:false},
+  ]
+},
+{
+  dim:'kausalitas',
+  stimulus:{
+    label:"Ringkasan Latar",
+    html:`Pada abad ke-11, Sriwijaya mengalami serangan dari Kerajaan Cholamandala (India) sekaligus mulai bermunculan bandar-bandar pesaing baru di Nusantara. Setelah periode ini, dominasi Sriwijaya atas jalur perdagangan berangsur menurun.`
+  },
+  prompt:"Rangkaian sebab-akibat yang paling tepat menjelaskan menurunnya dominasi Sriwijaya adalah...",
+  options:[
+    {text:"Menurunnya dominasi Sriwijaya terjadi tanpa sebab yang jelas dan bersifat kebetulan semata.", correct:false},
+    {text:"Serangan Cholamandala dan munculnya bandar pesaing sama-sama melemahkan kendali Sriwijaya atas jalur dagang.", correct:true},
+    {text:"Bandar-bandar pesaing baru itu justru muncul akibat dominasi Sriwijaya yang semakin kuat pada masa itu.", correct:false},
+    {text:"Serangan Cholamandala terjadi setelah Sriwijaya runtuh total, sehingga tidak berkaitan dengan sebab keruntuhannya.", correct:false},
+  ]
+},
+{
+  dim:'kausalitas',
+  stimulus:{
+    label:"Ringkasan Latar",
+    html:`Malaka jatuh ke tangan Portugis pada 1511. Setelah peristiwa ini, sejumlah pedagang Muslim dari Malaka tercatat berpindah dan mulai memusatkan aktivitas dagangnya di Aceh dan Banten.`
+  },
+  prompt:"Hubungan kausal yang paling logis antara jatuhnya Malaka dan berkembangnya Aceh serta Banten adalah...",
+  options:[
+    {text:"Aceh dan Banten berkembang lebih dulu, sehingga menyebabkan Portugis akhirnya menyerang Malaka.", correct:false},
+    {text:"Jatuhnya Malaka dan berkembangnya Aceh-Banten adalah dua peristiwa terpisah tanpa keterkaitan sama sekali.", correct:false},
+    {text:"Pedagang Muslim yang enggan berdagang di bawah kekuasaan Portugis mengalihkan aktivitas dagangnya ke bandar baru.", correct:true},
+    {text:"Portugis sengaja memindahkan seluruh pedagang Malaka secara paksa ke Aceh dan Banten.", correct:false},
+  ]
+},
+{
+  dim:'kausalitas',
+  stimulus:{
+    label:"Ringkasan Latar",
+    html:`Sejak abad ke-13, pedagang Muslim dari Gujarat dan Persia semakin ramai singgah di bandar-bandar pesisir Nusantara. Bersamaan dengan itu, komunitas Muslim di kawasan pesisir tersebut tercatat tumbuh secara bertahap.`
+  },
+  prompt:"Penjelasan kausal yang paling didukung data di atas tentang penyebaran Islam di Nusantara adalah...",
+  options:[
+    {text:"Islam menyebar semata melalui satu peristiwa penaklukan besar dalam waktu singkat.", correct:false},
+    {text:"Aktivitas perdagangan menjadi salah satu jalur penyebaran Islam secara bertahap di kawasan pesisir.", correct:true},
+    {text:"Pertumbuhan komunitas Muslim sama sekali tidak berkaitan dengan datangnya pedagang asing.", correct:false},
+    {text:"Pedagang Gujarat dan Persia baru datang setelah seluruh pesisir Nusantara memeluk Islam.", correct:false},
+  ]
+},
+{
+  dim:'kausalitas',
+  stimulus:{
+    label:"Ringkasan Latar",
+    html:`Pada abad ke-10, pusat Kerajaan Mataram Kuno berpindah dari Jawa Tengah ke Jawa Timur pada masa Mpu Sindok. Para sejarawan mengajukan beberapa dugaan sebab, antara lain bencana letusan gunung berapi dan tekanan dari Sriwijaya, namun belum ada bukti tunggal yang sepenuhnya pasti.`
+  },
+  prompt:"Sikap bernalar yang paling tepat terhadap perpindahan pusat kerajaan ini adalah...",
+  options:[
+    {text:"Memastikan salah satu dugaan sebagai satu-satunya penyebab meski buktinya belum lengkap.", correct:false},
+    {text:"Menganggap perpindahan itu tidak memiliki sebab apa pun dan terjadi begitu saja.", correct:false},
+    {text:"Menerima bahwa ada beberapa hipotesis yang mungkin saling melengkapi, dan kesimpulan pasti masih memerlukan bukti lebih lanjut.", correct:true},
+    {text:"Mengabaikan seluruh dugaan sejarawan karena dianggap tidak ada gunanya bagi peneliti muda.", correct:false},
+  ]
+},
+{
+  dim:'numerasi',
+  stimulus:{
+    label:"Tabel Data — Masa Berdiri Beberapa Kerajaan Nusantara (data ringkas untuk latihan)",
+    html:`<table>
+      <tr><th>Kerajaan</th><th>Berdiri</th><th>Berakhir (perkiraan)</th></tr>
+      <tr><td>Kutai</td><td>400 M</td><td>1635 M</td></tr>
+      <tr><td>Sriwijaya</td><td>671 M</td><td>1377 M</td></tr>
+      <tr><td>Majapahit</td><td>1293 M</td><td>1527 M</td></tr>
+      <tr><td>Samudera Pasai</td><td>1267 M</td><td>1521 M</td></tr>
+    </table>`
+  },
+  prompt:"Berdasarkan tabel, kerajaan manakah yang tercatat bertahan paling lama?",
+  options:[
+    {text:"Kutai, sebab rentang tahun berdiri hingga berakhirnya paling panjang di antara semuanya.", correct:true},
+    {text:"Sriwijaya, sebab namanya paling sering disebut dalam pelajaran sejarah.", correct:false},
+    {text:"Majapahit, sebab wilayah kekuasaannya tercatat paling luas di antara keempatnya.", correct:false},
+    {text:"Samudera Pasai, sebab merupakan kerajaan Islam pertama di Nusantara.", correct:false},
+  ]
+},
+{
+  dim:'numerasi',
+  stimulus:{
+    label:"Data yang sama dengan berkas sebelumnya",
+    html:`Gunakan tabel masa berdiri kerajaan pada berkas sebelumnya untuk menjawab.`
+  },
+  prompt:"Berapa lama kira-kira jarak waktu antara berdirinya Sriwijaya (671 M) dan berdirinya Majapahit (1293 M)?",
+  options:[
+    {text:"Sekitar 622 tahun", correct:true},
+    {text:"Sekitar 400 tahun", correct:false},
+    {text:"Sekitar 250 tahun", correct:false},
+    {text:"Sekitar 900 tahun", correct:false},
+  ]
+},
+{
+  dim:'numerasi',
+  stimulus:{
+    label:"Infografis Perbandingan Cakupan Wilayah (deskripsi, data untuk latihan)",
+    html:`Berdasarkan perkiraan sejarawan, wilayah pengaruh Sriwijaya pada puncak kejayaannya mencakup sekitar 2,4 juta km², sedangkan wilayah pengaruh Majapahit pada masa Hayam Wuruk diperkirakan mencakup sekitar 3,4 juta km².`
+  },
+  prompt:"Berdasarkan data tersebut, wilayah pengaruh Majapahit kira-kira berapa persen lebih luas dibanding Sriwijaya?",
+  options:[
+    {text:"Sekitar 42 persen lebih luas", correct:true},
+    {text:"Sekitar 10 persen lebih luas", correct:false},
+    {text:"Sekitar 75 persen lebih luas", correct:false},
+    {text:"Sekitar 100 persen lebih luas (dua kali lipat)", correct:false},
+  ]
+},
+{
+  dim:'numerasi',
+  stimulus:{
+    label:"Tabel Data — Perkiraan Jumlah Prasasti yang Ditemukan per Abad di Jawa (data rekaan untuk latihan)",
+    html:`<table>
+      <tr><th>Abad</th><th>Jumlah Prasasti</th></tr>
+      <tr><td>Abad ke-8</td><td>14</td></tr>
+      <tr><td>Abad ke-9</td><td>22</td></tr>
+      <tr><td>Abad ke-10</td><td>19</td></tr>
+      <tr><td>Abad ke-11</td><td>27</td></tr>
+    </table>`
+  },
+  prompt:"Berdasarkan tabel, pola jumlah prasasti yang ditemukan dari abad ke-8 hingga abad ke-11 paling tepat digambarkan sebagai...",
+  options:[
+    {text:"Naik terus secara konsisten tanpa satu kali pun mengalami penurunan di sepanjang empat abad tersebut.", correct:false},
+    {text:"Berfluktuasi naik-turun, dengan titik tertinggi terjadi pada abad ke-11.", correct:true},
+    {text:"Turun terus secara konsisten dari abad ke-8 hingga abad ke-11.", correct:false},
+    {text:"Stabil tanpa perubahan berarti sepanjang empat abad yang tercatat.", correct:false},
+  ]
+},
+{
+  dim:'numerasi',
+  stimulus:{
+    label:"Studi Kasus — Waktu Tempuh Pelayaran Rempah",
+    html:`Sebuah kapal dagang berlayar dari Banda ke Malaka menempuh jarak sekitar 2.100 km dengan kecepatan rata-rata 6 km/jam mengikuti angin musim, sedangkan rute alternatif via Jawa menempuh 2.800 km dengan kecepatan rata-rata 10 km/jam.`
+  },
+  prompt:"Rute manakah yang lebih cepat mencapai Malaka, dan sekitar berapa lama waktu tempuhnya?",
+  options:[
+    {text:"Rute langsung, sekitar 350 jam.", correct:true},
+    {text:"Rute via Jawa, sekitar 280 jam.", correct:false},
+    {text:"Kedua rute menempuh waktu yang persis sama.", correct:false},
+    {text:"Rute via Jawa, sekitar 466 jam.", correct:false},
+  ]
+},
+{
+  dim:'numerasi',
+  stimulus:{
+    label:"Tabel Data — Jumlah Kapal Dagang Singgah di Bandar Banten per Kuartal (data rekaan untuk latihan)",
+    html:`<table>
+      <tr><th>Kuartal</th><th>Kapal Eropa</th><th>Kapal Nusantara</th></tr>
+      <tr><td>Q1</td><td>6</td><td>48</td></tr>
+      <tr><td>Q2</td><td>9</td><td>44</td></tr>
+      <tr><td>Q3</td><td>13</td><td>39</td></tr>
+      <tr><td>Q4</td><td>18</td><td>35</td></tr>
+    </table>`
+  },
+  prompt:"Kesimpulan logis apa yang paling didukung oleh data proporsi kapal Eropa dan kapal Nusantara sepanjang tahun ini?",
+  options:[
+    {text:"Tidak ada pola apa pun yang bisa disimpulkan dari data tersebut.", correct:false},
+    {text:"Jumlah total kapal yang singgah meningkat drastis dari kuartal satu ke empat.", correct:false},
+    {text:"Proporsi kapal Eropa terhadap kapal Nusantara cenderung meningkat tiap kuartalnya.", correct:true},
+    {text:"Kapal Nusantara selalu mendominasi secara proporsi tanpa perubahan sepanjang tahun.", correct:false},
+  ]
+},
+{
+  dim:'spasial',
+  stimulus:{
+    label:"Studi Kasus Rute Pelayaran",
+    html:`Kapal dagang dari Sriwijaya menuju Tiongkok memanfaatkan angin monsun barat yang bertiup sekitar bulan November-Maret, sedangkan angin monsun timur untuk pelayaran pulang bertiup sekitar bulan Mei-September.`
+  },
+  prompt:"Jika sebuah kapal ingin berangkat ke Tiongkok dan kembali secepat mungkin dalam satu musim penuh, waktu keberangkatan paling logis adalah...",
+  options:[
+    {text:"Berangkat sekitar November-Desember, agar sempat kembali memakai monsun timur berikutnya.", correct:true},
+    {text:"Berangkat sekitar Juni, sebab angin pada bulan itu dianggap paling kencang sepanjang tahun.", correct:false},
+    {text:"Waktu keberangkatan tidak berpengaruh sama sekali terhadap kecepatan pelayaran kapal.", correct:false},
+    {text:"Berangkat sekitar Agustus, sebab bertepatan dengan puncak musim dagang di Tiongkok.", correct:false},
+  ]
+},
+{
+  dim:'spasial',
+  stimulus:{
+    label:"Studi Kasus Alokasi Armada",
+    html:`Sriwijaya memiliki 18 kapal untuk mengumpulkan upeti dari 3 bandar vassal. Bandar A membutuhkan 4 kapal, Bandar B membutuhkan 9 kapal karena jaraknya paling jauh, dan sisanya digunakan untuk Bandar C.`
+  },
+  prompt:"Berapa kapal yang tersisa untuk dialokasikan ke Bandar C?",
+  options:[
+    {text:"3 kapal", correct:false},
+    {text:"5 kapal", correct:true},
+    {text:"7 kapal", correct:false},
+    {text:"9 kapal", correct:false},
+  ]
+},
+{
+  dim:'spasial',
+  stimulus:{
+    label:"Studi Kasus Prioritas Muatan",
+    html:`Sebuah kapal dagang menuju Malaka hanya memiliki sisa ruang muat untuk 200 peti. Tersedia pesanan: 120 peti lada (untung 4 gulden/peti), 90 peti cengkih (untung 6 gulden/peti), dan 70 peti pala (untung 3 gulden/peti). Kapal harus berangkat hari ini juga.`
+  },
+  prompt:"Susunan muatan manakah yang secara logis memaksimalkan keuntungan tanpa melebihi kapasitas 200 peti?",
+  options:[
+    {text:"Ketiga jenis komoditas diangkut merata, masing-masing enam puluh enam peti.", correct:false},
+    {text:"Sembilan puluh peti cengkih dan seratus sepuluh peti lada.", correct:true},
+    {text:"Seratus dua puluh peti lada dan delapan puluh peti pala.", correct:false},
+    {text:"Tujuh puluh peti pala dan seratus tiga puluh peti lada, kombinasi ini dipilih supaya seluruh dua ratus peti ruang muat kapal terisi penuh tanpa tersisa sedikit pun.", correct:false},
+  ]
+},
+{
+  dim:'spasial',
+  stimulus:{
+    label:"Studi Kasus Antrean Dermaga Bandar Malaka",
+    html:`Dermaga Malaka hanya memiliki 2 titik sandar. Kapal A butuh 4 jam bongkar muat, Kapal B butuh 6 jam, dan Kapal C butuh 2 jam. Ketiganya tiba bersamaan pukul 08.00, tetapi hanya 2 kapal yang bisa sandar sekaligus.`
+  },
+  prompt:"Agar total waktu tunggu seluruh kapal paling singkat, urutan sandar yang paling logis adalah...",
+  options:[
+    {text:"Kapal A dan B disandarkan lebih dulu bersamaan, Kapal C menunggu hingga salah satunya selesai.", correct:false},
+    {text:"Kapal B dan C sandar dulu, Kapal A menunggu di belakang.", correct:false},
+    {text:"Kapal C dan A sandar dulu sebab tercepat, Kapal B menyusul.", correct:true},
+    {text:"Urutan sandar tak memengaruhi total waktu tunggu ketiga kapal.", correct:false},
+  ]
+},
+{
+  dim:'spasial',
+  stimulus:{
+    label:"Studi Kasus Rute Alternatif Menuju Pedalaman",
+    html:`Jalur sungai utama dari bandar ke pedalaman biasanya ditempuh 5 jam, tetapi sedang dangkal akibat kemarau. Ada dua jalur alternatif: Jalur darat X sepanjang 40 km dengan kecepatan rata-rata 8 km/jam, dan Jalur darat Y sepanjang 54 km dengan kecepatan rata-rata 18 km/jam.`
+  },
+  prompt:"Jalur alternatif mana yang paling logis dipilih agar rempah tiba lebih cepat dibanding jalur sungai yang dangkal?",
+  options:[
+    {text:"Jalur Y, sebab waktu tempuhnya sekitar 3 jam meski jaraknya lebih panjang.", correct:true},
+    {text:"Jalur X, sebab jaraknya lebih pendek meski waktu tempuhnya sekitar 5 jam.", correct:false},
+    {text:"Tetap menunggu jalur sungai membaik, sebab kedua alternatif dianggap sama lambat.", correct:false},
+    {text:"Keduanya sama saja, sebab total waktu tempuh kedua jalur itu identik.", correct:false},
+  ]
+},
+{
+  dim:'spasial',
+  stimulus:{
+    label:"Studi Kasus Pembagian Wilayah Kekuasaan Majapahit",
+    html:`Majapahit membagi wilayah pengaruhnya menjadi nagaragung (inti kerajaan di Jawa Timur, kendali langsung) dan mancanegara (wilayah luar Jawa, kendali tidak langsung lewat pengiriman upeti dan pengakuan kekuasaan).`
+  },
+  prompt:"Pembagian sistem kekuasaan seperti ini paling tepat dipahami sebagai strategi untuk...",
+  options:[
+    {text:"Mengendalikan wilayah yang sangat luas secara efisien tanpa harus menempatkan pasukan penuh di setiap daerah.", correct:true},
+    {text:"Menunjukkan bahwa Majapahit sebenarnya tidak mampu menguasai wilayah luar Jawa sama sekali.", correct:false},
+    {text:"Membagi kerajaan menjadi dua negara yang benar-benar terpisah dan tidak saling berkaitan.", correct:false},
+    {text:"Mengurangi luas wilayah kekuasaan Majapahit secara keseluruhan demi menghemat biaya.", correct:false},
+  ]
+},
+{
+  dim:'regulasi',
+  type:'sjt',
+  prompt:"Kamu sedang menyusun peta konsep tentang kerajaan Hindu-Buddha di Nusantara, namun dua buku sumber yang kamu pakai berbeda pendapat tentang tahun runtuhnya Sriwijaya. Apa langkah pertama yang paling tepat kamu lakukan?",
+  options:[
+    {text:"Mengabaikan kedua sumber dan menulis berdasarkan perkiraan sendiri.", value:20},
+    {text:"Memilih salah satu tahun secara acak, yang penting tugas segera selesai dikerjakan dan bisa dikumpulkan tepat waktu sebelum tenggat yang ditentukan guru.", value:10},
+    {text:"Membandingkan kredibilitas dan tahun terbit kedua sumber, lalu mencari pembanding lain.", value:100},
+    {text:"Menuliskan kedua tahun tanpa menjelaskan perbedaan di antaranya.", value:40},
+  ]
+},
+{
+  dim:'regulasi',
+  type:'sjt',
+  prompt:"H-2 hari sebelum tenggat pengumpulan tugas, kamu sadar bagian yang membahas jalur masuknya Islam ke Nusantara belum selesai dan terasa paling sulit dipahami. Apa yang sebaiknya kamu lakukan?",
+  options:[
+    {text:"Menyalin hasil kerja teman tanpa memahami isinya, asal tugas terkumpul.", value:20},
+    {text:"Memecah bagian sulit itu menjadi langkah kecil, kerjakan bertahap, dan bertanya jika buntu.", value:100},
+    {text:"Fokus mengerjakan bagian yang mudah saja, biarkan bagian sulit itu kosong.", value:10},
+    {text:"Menunda pengerjaannya sampai malam terakhir sebab masih tersisa waktu.", value:15},
+  ]
+},
+{
+  dim:'regulasi',
+  type:'sjt',
+  prompt:"Saat presentasi kelompok tentang Kesultanan Demak, temanmu salah menyebutkan tahun yang sebenarnya sudah kalian sepakati bersama sebelumnya. Bagaimana sikap regulasi diri yang paling tepat kamu tunjukkan saat itu juga?",
+  options:[
+    {text:"Memotong pembicaraan temanmu saat itu juga dan mengoreksinya secara terbuka di depan seluruh kelas dengan nada suara yang meninggi dan terkesan menyalahkan.", value:35},
+    {text:"Menunggu giliran bicara, lalu meluruskan data dengan tenang.", value:100},
+    {text:"Menyalahkan teman itu setelah presentasi di depan yang lain.", value:15},
+    {text:"Tetap diam meski tahu datanya salah, menghindari konflik.", value:25},
+  ]
+},
+{
+  dim:'regulasi',
+  type:'sjt',
+  prompt:"Kamu sudah belajar semalaman untuk kuis sejarah kerajaan Hindu-Buddha dan Islam besok, tetapi baru sadar ada satu kerajaan penting yang terlewat dan waktu tersisa hanya 2 jam sebelum tidur. Apa yang paling tepat kamu lakukan?",
+  options:[
+    {text:"Begadang semalaman membaca seluruh buku dari awal tanpa jeda istirahat.", value:30},
+    {text:"Membuat ringkasan poin kunci kerajaan yang terlewat, lalu tidur cukup agar tetap fokus.", value:100},
+    {text:"Menyerah saja dan berharap kerajaan tersebut tidak keluar di soal kuis.", value:10},
+    {text:"Menghubungi banyak teman sekaligus meminta dikirimi seluruh catatan mereka malam itu.", value:45},
+  ]
+},
+{
+  dim:'regulasi',
+  type:'sjt',
+  prompt:"Nilai tugas riset tentang kerajaan Islam di Nusantara ternyata lebih rendah dari yang kamu harapkan, padahal kamu merasa sudah bekerja keras. Reaksi paling sehat dan produktif adalah...",
+  options:[
+    {text:"Membandingkan nilaimu dengan nilai teman hingga minder berkepanjangan.", value:20},
+    {text:"Merasa penilaian itu tidak adil, lalu berhenti berusaha pada tugas-tugas riset berikutnya karena menganggap kerja keras tak lagi ada gunanya.", value:15},
+    {text:"Mengabaikan nilai itu sepenuhnya tanpa membaca catatan koreksi guru.", value:10},
+    {text:"Membaca catatan koreksi guru, mengenali bagian lemah, lalu bertanya cara memperbaiki.", value:100},
+  ]
+},
+{
+  dim:'regulasi',
+  type:'sjt',
+  prompt:"Kamu ditugaskan meneliti satu bagian kecil dari proyek kelompok besar tentang jaringan dagang kerajaan maritim, tetapi anggota lain belum menyelesaikan bagian mereka sehingga kamu tidak bisa lanjut menyusun kesimpulan gabungan. Apa langkah paling tepat?",
+  options:[
+    {text:"Memakai waktu tunggu untuk memperkuat draf bagianmu sendiri, sambil mengingatkan teman sopan.", value:100},
+    {text:"Menunggu tanpa melakukan apa pun sampai semua bagian teman selesai.", value:20},
+    {text:"Mengerjakan sendiri seluruh bagian teman-temanmu agar proyek cepat kelar.", value:30},
+    {text:"Melaporkan teman-teman ke guru tanpa mencoba berkomunikasi terlebih dahulu.", value:25},
+  ]
+},
+];
+/* =========================================================
+   STATE
+========================================================= */
+let current = 0;
+let answers = new Array(QUESTIONS.length).fill(null); // index of selected option
+let studentName = '';
+let studentClass = '';
+
+/* =========================================================
+   ANTI-CHEAT LOCKDOWN — STATE
+   Ganti kata sandi di bawah ini sesuai keinginan guru.
+   CATATAN: karena ini file HTML statis (tanpa server), kata sandi
+   tersimpan di dalam kode halaman ini. Ini cukup untuk mencegah
+   siswa membuka kunci sendiri secara iseng, tapi bukan proteksi
+   tingkat tinggi — siswa yang membuka "lihat kode sumber" tetap
+   berpotensi melihatnya.
+========================================================= */
+const TEACHER_PASSWORD = "sejarahXI2025";
+let testActive = false;      // true selama siswa mengerjakan (screen-test)
+let isLocked = false;
+let violations = [];         // { time: Date, reason: string }
+
+/* =========================================================
+   INIT — dim grid on intro screen
+========================================================= */
+const dimGrid = document.getElementById('dim-grid');
+DIMENSIONS.forEach((d,i)=>{
+  const el = document.createElement('div');
+  el.className='dim-chip';
+  el.innerHTML = `<div class="n">0${i+1}</div><div class="l">${d.label}</div>`;
+  dimGrid.appendChild(el);
+});
+
+/* =========================================================
+   NAVIGATION BETWEEN SCREENS
+========================================================= */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('btnOpenCase').addEventListener('click', ()=>{
+  showScreen('screen-intro');
+});
+
+document.getElementById('btnStart').addEventListener('click', ()=>{
+  const nameInput = document.getElementById('studentName');
+  const classInput = document.getElementById('studentClass');
+  studentName = nameInput.value.trim() || 'Peneliti';
+  studentClass = classInput.value.trim() || '-';
+  current = 0;
+  testActive = true;
+  showScreen('screen-test');
+  renderQuestion();
+});
+
+/* =========================================================
+   ANTI-CHEAT LOCKDOWN — LOGIC
+========================================================= */
+function formatTime(d){
+  return d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+function triggerLock(reason){
+  if(!testActive || isLocked) return;
+  isLocked = true;
+  const record = { time: new Date(), reason };
+  violations.push(record);
+
+  document.getElementById('lockReason').textContent = reason;
+  document.getElementById('lockCount').textContent =
+    `Pelanggaran ke-${violations.length} tercatat pukul ${formatTime(record.time)}.`;
+  document.getElementById('lockPassword').value = '';
+  document.getElementById('lockError').textContent = '';
+  document.getElementById('lockOverlay').classList.add('active');
+}
+
+function unlockWithPassword(){
+  const input = document.getElementById('lockPassword');
+  const errorEl = document.getElementById('lockError');
+  if(input.value === TEACHER_PASSWORD){
+    isLocked = false;
+    document.getElementById('lockOverlay').classList.remove('active');
+    errorEl.textContent = '';
+  } else {
+    errorEl.textContent = 'Kata sandi salah. Minta gurumu memasukkan kata sandi yang benar.';
+    input.value = '';
+    input.focus();
+  }
+}
+
+document.getElementById('btnUnlock').addEventListener('click', unlockWithPassword);
+document.getElementById('lockPassword').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') unlockWithPassword();
+});
+
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden) triggerLock('Berpindah tab atau meminimalkan jendela ujian.');
+});
+window.addEventListener('blur', ()=>{
+  // beri jeda singkat agar tidak bentrok dengan event visibilitychange di kejadian yang sama
+  setTimeout(()=>{ if(!document.hasFocus()) triggerLock('Jendela ujian kehilangan fokus (kemungkinan membuka aplikasi/tab lain).'); }, 50);
+});
+window.addEventListener('beforeunload', (e)=>{
+  if(testActive && !isLocked){
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+/* =========================================================
+   RENDER QUESTION
+========================================================= */
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  const dim = DIMENSIONS.find(d=>d.id===q.dim);
+
+  document.getElementById('itemTag').textContent = `BERKAS ${String(current+1).padStart(2,'0')} / ${QUESTIONS.length}`;
+  document.getElementById('dimStamp').textContent = dim.short.toUpperCase();
+  document.getElementById('progressFill').style.width = `${(current/QUESTIONS.length)*100}%`;
+
+  const stimHolder = document.getElementById('stimulusHolder');
+  if(q.stimulus){
+    stimHolder.innerHTML = `<div class="stimulus"><span class="stim-label">${q.stimulus.label}</span>${q.stimulus.html}</div>`;
+  } else {
+    stimHolder.innerHTML = '';
+  }
+
+  document.getElementById('qPrompt').textContent = q.prompt;
+
+  const optHolder = document.getElementById('qOptions');
+  optHolder.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  q.options.forEach((opt, idx)=>{
+    const el = document.createElement('div');
+    el.className = 'option' + (answers[current]===idx ? ' selected' : '');
+    el.innerHTML = `<div class="bullet">${letters[idx]}</div><div>${opt.text}</div>`;
+    el.addEventListener('click', ()=>{
+      answers[current] = idx;
+      renderQuestion();
+    });
+    optHolder.appendChild(el);
+  });
+
+  document.getElementById('btnPrev').disabled = current===0;
+  document.getElementById('btnPrev').style.visibility = current===0 ? 'hidden' : 'visible';
+  document.getElementById('btnNext').disabled = answers[current]===null;
+  document.getElementById('btnNext').textContent = current === QUESTIONS.length-1 ? 'Selesai & Lihat Laporan →' : 'Lanjut →';
+}
+
+document.getElementById('btnPrev').addEventListener('click', ()=>{
+  if(current>0){ current--; renderQuestion(); }
+});
+
+document.getElementById('btnNext').addEventListener('click', ()=>{
+  if(current < QUESTIONS.length-1){
+    current++;
+    renderQuestion();
+  } else {
+    finishTest();
+  }
+});
+
+/* =========================================================
+   SCORING
+========================================================= */
+function computeScores(){
+  const totals = {}; const counts = {};
+  DIMENSIONS.forEach(d=>{ totals[d.id]=0; counts[d.id]=0; });
+
+  QUESTIONS.forEach((q, i)=>{
+    const chosenIdx = answers[i];
+    if(chosenIdx===null) return;
+    const opt = q.options[chosenIdx];
+    let points = 0;
+    if(q.type==='sjt'){
+      points = opt.value;
+    } else {
+      points = opt.correct ? 100 : 0;
+    }
+    totals[q.dim]+=points;
+    counts[q.dim]+=1;
+  });
+
+  const results = DIMENSIONS.map(d=>({
+    ...d,
+    pct: counts[d.id]>0 ? Math.round(totals[d.id]/counts[d.id]) : 0
+  }));
+  return results;
+}
+
+function tagFor(pct){
+  if(pct>=80) return {label:'Sangat Baik', color:'#4fd1c5'};
+  if(pct>=60) return {label:'Cukup', color:'#c9a227'};
+  if(pct>=40) return {label:'Perlu Latihan', color:'#e2a15b'};
+  return {label:'Perlu Pendampingan', color:'#e2725b'};
+}
+
+/* =========================================================
+   FEEDBACK ENGINE (rule-based if/else)
+========================================================= */
+const FEEDBACK_LIBRARY = {
+  interpretasi: {
+    low: 'kamu masih perlu berlatih membedakan fakta dan sudut pandang dalam sumber sejarah (prasasti, kitab, catatan asing) — coba biasakan bertanya "siapa yang menulis ini, dan untuk kepentingan siapa?" setiap membaca sumber tentang kerajaan Hindu-Buddha atau Islam.',
+    high: 'kamu cukup tajam dalam mengenali sudut pandang dan kepentingan di balik sumber-sumber sejarah kerajaan Nusantara.'
+  },
+  kausalitas: {
+    low: 'kamu masih sering menghubungkan dua peristiwa yang sebenarnya tidak berkaitan langsung — latih diri memisahkan "kebetulan terjadi bersamaan" dari "benar-benar menyebabkan" saat mempelajari kejayaan maupun keruntuhan kerajaan.',
+    high: 'kamu mampu menyusun rangkaian sebab-akibat sejarah kerajaan Hindu-Buddha dan Islam dengan runtut dan berbasis bukti.'
+  },
+  numerasi: {
+    low: 'kamu masih perlu membiasakan diri membaca data kronologi, luas wilayah, dan grafik historis secara lebih cermat, terutama dalam menghitung selisih tahun dan tren perubahan.',
+    high: 'kamu terampil membaca kronologi, data wilayah, dan pola dalam data numerik sejarah kerajaan Nusantara.'
+  },
+  spasial: {
+    low: 'kamu masih perlu berlatih menganalisis jalur pelayaran, rute dagang, dan pembagian wilayah kekuasaan kerajaan maritim — coba selalu bandingkan "opsi mana yang paling efisien", bukan hanya "opsi mana yang paling mudah".',
+    high: 'kamu cukup gesit dalam menganalisis jalur pelayaran, distribusi, dan pembagian wilayah kekuasaan kerajaan maritim secara logis.'
+  },
+  regulasi: {
+    low: 'kamu masih perlu melatih strategi mengelola waktu dan konflik sumber saat belajar mandiri — coba biasakan memecah masalah besar menjadi langkah-langkah kecil.',
+    high: 'kamu menunjukkan kemandirian belajar dan pengendalian diri yang matang saat menghadapi situasi sulit.'
+  }
+};
+
+function generateFeedback(results){
+  const sorted = [...results].sort((a,b)=>b.pct-a.pct);
+  const highest = sorted[0];
+  const lowest = sorted[sorted.length-1];
+  const avg = Math.round(results.reduce((s,r)=>s+r.pct,0)/results.length);
+
+  let overallTier;
+  if(avg>=80) overallTier = `Secara keseluruhan performamu <span class="hi">sangat solid (rata-rata ${avg}%)</span>. Fondasimu tentang kerajaan Hindu-Buddha dan Islam sudah kuat untuk melanjutkan materi kelas XI yang lebih mendalam.`;
+  else if(avg>=60) overallTier = `Secara keseluruhan performamu <span class="hi">cukup baik (rata-rata ${avg}%)</span>, dengan beberapa area yang masih bisa dioptimalkan sebelum masuk ke materi kelas XI.`;
+  else overallTier = `Secara keseluruhan kamu <span class="hi">masih dalam tahap membangun fondasi (rata-rata ${avg}%)</span> — ini normal untuk diagnostik awal, gunakan hasil ini sebagai peta latihan sebelum materi baru dimulai, bukan penilaian akhir.`;
+
+  const strongText = FEEDBACK_LIBRARY[highest.id].high;
+  const weakText = FEEDBACK_LIBRARY[lowest.id].low;
+
+  return `
+    <p>${overallTier}</p>
+    <p><span class="hi">Kekuatan utamamu ada pada ${highest.label} (${highest.pct}%).</span> ${strongText}</p>
+    <p><span class="hi">Area yang paling perlu kamu latih adalah ${lowest.label} (${lowest.pct}%).</span> ${weakText}</p>
+    <p>Gunakan kekuatanmu di ${highest.label.toLowerCase()} sebagai modal, sambil menyisihkan waktu latihan khusus untuk ${lowest.label.toLowerCase()} setiap minggu.</p>
+  `;
+}
+
+/* =========================================================
+   REKOMENDASI BELAJAR (rule-based, per dimensi yang lemah)
+========================================================= */
+const RECOMMENDATION_LIBRARY = {
+  interpretasi: [
+    'Baca ulang bab kerajaan Hindu-Buddha dan Islam di buku paket, lalu untuk setiap sumber (prasasti, kitab, catatan musafir) tuliskan siapa penulisnya dan kepentingan apa yang mungkin melatarbelakanginya.',
+    'Latihan soal tipe "menilai kredibilitas sumber" — bandingkan dua sumber sezaman yang membahas peristiwa sejarah kerajaan yang sama dari sudut pandang berbeda.',
+    'Coba teknik SOAPS (Speaker, Occasion, Audience, Purpose, Subject) setiap membaca prasasti, kitab, atau catatan asing tentang kerajaan Nusantara untuk membedah bias secara sistematis.',
+  ],
+  kausalitas: [
+    'Buat diagram sebab-akibat sederhana (panah A → B) untuk setiap peristiwa kejayaan maupun keruntuhan kerajaan yang kamu pelajari, lalu tanyakan "apa buktinya A benar-benar menyebabkan B?".',
+    'Latih diri membedakan korelasi dan kausalitas lewat contoh kasus sehari-hari sebelum masuk ke peristiwa sejarah kerajaan yang lebih kompleks.',
+    'Kerjakan latihan soal bertema "simpulan sebab-akibat dari teks sejarah" secara rutin, minimal 5 soal per minggu, dengan topik kerajaan Hindu-Buddha dan Islam.',
+  ],
+  numerasi: [
+    'Buat garis waktu (timeline) sendiri untuk kerajaan-kerajaan yang sudah dipelajari, lengkap dengan tahun berdiri dan berakhir, lalu latih menghitung selisih dan durasi masa berdirinya.',
+    'Latih soal hitung persentase perbandingan wilayah atau data niaga kerajaan, serta interpretasi grafik garis maupun batang minimal 10 soal per minggu.',
+    'Coba ubah satu tabel data sejarah (misalnya jumlah prasasti atau volume dagang) menjadi grafik sendiri menggunakan spreadsheet, lalu jelaskan polanya dengan kata-katamu sendiri.',
+  ],
+  spasial: [
+    'Gambar ulang peta jalur pelayaran dan pusat-pusat kerajaan maritim Nusantara, lalu tandai arah angin monsun dan rute dagang utamanya.',
+    'Latihan soal cerita bertema distribusi muatan kapal, alokasi armada, dan optimasi rute pelayaran secara rutin.',
+    'Diskusikan studi kasus pembagian wilayah kekuasaan (misalnya nagaragung dan mancanegara Majapahit) bersama teman, lalu bandingkan cara berpikir kalian dalam menentukan strategi kendali wilayah.',
+  ],
+  regulasi: [
+    'Coba teknik memecah tugas besar menjadi langkah-langkah kecil dengan tenggat harian (bukan hanya tenggat akhir) untuk melatih manajemen waktu.',
+    'Latih refleksi singkat setelah mengerjakan tugas: "apa yang menghambatku, dan langkah apa yang akan kucoba lain kali?"',
+    'Praktikkan simulasi Situational Judgment Test (SJT) bersama teman — bahas bersama pilihan mana yang paling mencerminkan regulasi diri yang matang.',
+  ],
+};
+
+function generateRecommendations(results){
+  const THRESHOLD = 70;
+  const weakOnes = results.filter(r=>r.pct < THRESHOLD).sort((a,b)=>a.pct-b.pct);
+
+  if(weakOnes.length === 0){
+    return `<div class="reco-empty">Seluruh dimensi kompetensimu berada di atas ambang batas 70%. Pertahankan performa ini dengan sesekali membaca sumber sejarah tambahan tentang kerajaan Hindu-Buddha dan Islam agar pemahamanmu terus terasah.</div>`;
+  }
+
+  return weakOnes.map(r=>{
+    const t = tagFor(r.pct);
+    const tips = RECOMMENDATION_LIBRARY[r.id].map(tip=>`<li>${tip}</li>`).join('');
+    return `
+      <div class="reco-card" style="border-left-color:${r.color};">
+        <div class="reco-card-head">
+          <span class="reco-card-title">${r.label}</span>
+          <span class="reco-card-score" style="color:${t.color};">${r.pct}% · ${t.label}</span>
+        </div>
+        <ul>${tips}</ul>
+      </div>
+    `;
+  }).join('');
+}
+
+/* =========================================================
+   FINISH TEST → RENDER RESULT SCREEN
+========================================================= */
+let radarChartInstance = null;
+
+function finishTest(){
+  testActive = false;
+  document.getElementById('progressFill').style.width = '100%';
+  const results = computeScores();
+
+  document.getElementById('resultName').textContent = `Laporan Hasil — ${studentName} (Kelas ${studentClass})`;
+  const now = new Date();
+  document.getElementById('resultDate').textContent = `Berkas ditutup pada ${now.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}`;
+
+  // radar chart
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  if(radarChartInstance) radarChartInstance.destroy();
+  radarChartInstance = new Chart(ctx, {
+    type:'radar',
+    data:{
+      labels: results.map(r=>r.short),
+      datasets:[{
+        label:'Skor (%)',
+        data: results.map(r=>r.pct),
+        backgroundColor:'rgba(201,162,39,0.18)',
+        borderColor:'#c9a227',
+        pointBackgroundColor:'#c9a227',
+        pointBorderColor:'#0b0e14',
+        borderWidth:2,
+        pointRadius:4,
+      }]
+    },
+    options:{
+      responsive:true,
+      scales:{
+        r:{
+          min:0, max:100, ticks:{ display:false, stepSize:20 },
+          grid:{ color:'rgba(201,162,39,0.15)' },
+          angleLines:{ color:'rgba(201,162,39,0.15)' },
+          pointLabels:{ color:'#ece2c8', font:{ size:12, family:'Inter' } }
+        }
+      },
+      plugins:{ legend:{ display:false } }
+    }
+  });
+
+  // score table
+  const table = document.getElementById('scoreTable');
+  table.innerHTML = '';
+  results.forEach(r=>{
+    const t = tagFor(r.pct);
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td style="width:40%;">
+        <div class="dim-name">${r.label}</div>
+        <div class="score-bar-track"><div class="score-bar-fill" style="width:${r.pct}%; background:${r.color};"></div></div>
+      </td>
+      <td class="score-pct" style="color:${t.color};">${r.pct}%</td>
+      <td class="score-tag" style="color:${t.color};">${t.label}</td>
+    `;
+    table.appendChild(row);
+  });
+
+  document.getElementById('feedbackText').innerHTML = generateFeedback(results);
+
+  // rekam integritas pengerjaan (anti-cheat log)
+  const violationBlock = document.getElementById('violationBlock');
+  const violationHeading = document.getElementById('violationHeading');
+  const violationContent = document.getElementById('violationContent');
+  if(violations.length === 0){
+    violationBlock.classList.add('clean');
+    violationHeading.textContent = 'Rekam Integritas Pengerjaan';
+    violationContent.innerHTML = `<p style="font-size:14px; color:var(--paper-dim); line-height:1.6;">Tidak ada pelanggaran terdeteksi — berkas dikerjakan tanpa berpindah tab atau keluar dari halaman.</p>`;
+  } else {
+    violationBlock.classList.remove('clean');
+    violationHeading.textContent = `Rekam Integritas Pengerjaan — ${violations.length} Pelanggaran Terdeteksi`;
+    const items = violations.map((v,i)=>`<li><span>#${i+1} — ${v.reason}</span><span>${formatTime(v.time)}</span></li>`).join('');
+    violationContent.innerHTML = `<ul class="violation-list">${items}</ul>`;
+  }
+
+  showScreen('screen-result');
+}
+
+document.getElementById('btnRetry').addEventListener('click', ()=>{
+  answers = new Array(QUESTIONS.length).fill(null);
+  current = 0;
+  violations = [];
+  isLocked = false;
+  document.getElementById('lockOverlay').classList.remove('active');
+  showScreen('screen-intro');
+});
+
+document.getElementById('btnPrint').addEventListener('click', ()=>{
+  window.print();
+});
+</script>
+</body>
+</html>
